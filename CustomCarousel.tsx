@@ -34,6 +34,12 @@ interface RenderItemProps {
 
 const array = [...new Array(100)];
 
+// index % 2 === 0
+// ? styles.carousel
+// : index % 3 === 0
+// ? { ...styles.carousel, transform: [{ rotate: "-7deg" }] }
+// : { ...styles.carousel, transform: [{ rotate: "7deg" }] }
+
 const CustomCarousel: React.FC<CustomCarouselProps> = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [carouselItems, setCarouselItems] = useState<ItemProps[]>(array);
@@ -42,13 +48,7 @@ const CustomCarousel: React.FC<CustomCarouselProps> = () => {
   const renderItem = useCallback(({ item, index }: RenderItemProps) => {
     return (
       <LinearGradient
-        style={
-          index % 2 === 0
-            ? styles.carousel
-            : index % 3 === 0
-            ? { ...styles.carousel, transform: [{ rotate: "-5deg" }] }
-            : { ...styles.carousel, transform: [{ rotate: "5deg" }] }
-        }
+        style={styles.carousel}
         colors={["#757984", "#424859"]}
         start={{ x: 1, y: 0.2 }}
       >
@@ -96,17 +96,16 @@ const CustomCarousel: React.FC<CustomCarouselProps> = () => {
       }}
     >
       <Carousel
-        layout={"tinder"}
+        layout={"stack"}
         ref={ref}
-        layoutCardOffset={-20}
-        activeAnimationType="timing"
         data={carouselItems}
         sliderWidth={width}
         itemWidth={width}
         renderItem={renderItem}
         onSnapToItem={(index: number) => setActiveIndex(index)}
+        
+
         // autoplay
-        inactiveSlideOpacity={-100}
       />
 
       {/* <View
@@ -147,8 +146,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     height: height / 1.4,
     padding: 50,
-    marginLeft: 30,
-    marginRight: 30,
+    marginLeft: 10,
+    marginRight: 50,
     top: "15%",
   },
   circle: {
