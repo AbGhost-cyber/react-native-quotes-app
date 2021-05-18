@@ -9,7 +9,6 @@ import store from "./store/store";
 export default function App() {
   return (
     <Provider store={store}>
-      {/* <CustomCarousel /> */}
       <Me />
     </Provider>
   );

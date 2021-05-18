@@ -1,69 +1,98 @@
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+import { UserListState } from "../model/Types";
 import {
-  AnyAction,
-  CaseReducer,
-  createAction,
-  createAsyncThunk,
-  createSlice,
-  PayloadAction,
-} from "@reduxjs/toolkit";
-import type { Quote, ServerResponse } from "../model/Models";
-import store, { AppDispatch } from "./store";
+  deleteQuote,
+  favoriteQuote,
+  fetchQuoteById,
+  fetchQuotes,
+} from "./AsyncActions";
 
-//type of initial state
-export type UserListState = {
-  quotes: Quote[];
-  loading: boolean;
-  error: boolean;
-  value: number;
-};
-
-export const fetchQuoteById = createAsyncThunk(
-  "quotes/fetchById",
-  async (quoteId: string) => {
-    const response = await fetch(`https://jdjjcjdjd/${quoteId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return (await response.json()) as Quote;
-  }
-);
-
-export const Meee = createAction<string>("firstMe");
-
+//initial state for our slice
 const initialState: UserListState = {
   quotes: [],
-  loading: false,
-  error: false,
-  value: 0,
+  favQuotes: [],
+  currentSelectedQuote: null,
+  error: undefined,
 };
 
-const userListSlice = createSlice({
-  name: "userList",
+const quoteSlice = createSlice({
+  name: "quoteSlice",
   initialState: initialState,
-  reducers: {
-    increment: (state, action: PayloadAction<Quote>) => {
-      state.quotes = state.quotes.concat(action.payload);
-      state.value += 1;
-    },
-    decrease: (state) => {
-      if (state.value > 0) {
-        state.value -= 1;
-      }
-    },
-    clear: (state) => {
-      state.value = 0;
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchQuoteById.fulfilled, (state, { payload }) => {
-      state.quotes = state.quotes.concat(payload);
+      state.currentSelectedQuote = payload;
     });
-    builder.addCase(Meee, (state) => {});
+    builder.addCase(fetchQuoteById.rejected, (state, action) => {
+      if (action.payload) {
+        state.error = action.payload.message;
+      } else {
+        state.error = action.error.message;
+      }
+    });
+    builder.addCase(fetchQuotes.fulfilled, (state, { payload }) => {
+      payload.fetchFavsOnly === true
+        ? (state.favQuotes = payload.quotes)
+        : (state.quotes = payload.quotes);
+    });
+    builder.addCase(fetchQuotes.rejected, (state, action) => {
+      if (action.payload) {
+        state.error = action.payload.message;
+      } else {
+        state.error = action.error.message;
+      }
+    });
+    builder.addCase(favoriteQuote.fulfilled, (state, action) => {
+      //check if quote was already favorited
+      const wasFavorited = state.favQuotes.find(
+        (quote) => quote.id === action.payload.quoteId
+      );
+
+      //copy of the state favorited quotes
+      let favQuotes = state.favQuotes.slice();
+      if (wasFavorited) {
+        //get the quote's index
+        const quoteIndex = favQuotes.findIndex(
+          (quote) => quote.id === action.payload.quoteId
+        );
+        //remove from the array of fav quotes
+        favQuotes.splice(quoteIndex, 1);
+        state.favQuotes = favQuotes;
+      } else {
+        //insert quote into favorited quotes
+        const favQuote = state.quotes.find(
+          (quote) => quote.id === action.payload.quoteId
+        );
+
+        if (favQuote) {
+          favQuotes = favQuotes.concat(favQuote);
+        }
+        //update our fav quotes
+        state.favQuotes = favQuotes;
+      }
+    });
+
+    builder.addCase(favoriteQuote.rejected, (state, action) => {
+      if (action.payload) {
+        state.error = action.payload.message;
+      } else {
+        state.error = action.error.message;
+      }
+    });
+    builder.addCase(deleteQuote.fulfilled, (state, { payload }) => {
+      state.quotes = state.quotes.filter(
+        (quote) => quote.id !== payload.quoteId
+      );
+    });
+    builder.addCase(deleteQuote.rejected, (state, action) => {
+      if (action.payload) {
+        state.error = action.payload.message;
+      } else {
+        state.error = action.error.message;
+      }
+    });
   },
 });
 
-export const { increment, decrease, clear } = userListSlice.actions;
-
-export default userListSlice.reducer;
+export default quoteSlice.reducer;
