@@ -58,6 +58,8 @@ const quoteSlice = createSlice({
         );
         //remove from the array of fav quotes
         favQuotes.splice(quoteIndex, 1);
+
+        //update fav quotes state
         state.favQuotes = favQuotes;
       } else {
         //insert quote into favorited quotes

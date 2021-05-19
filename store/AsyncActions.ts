@@ -51,11 +51,11 @@ export const fetchQuotes = createAsyncThunk<
 
   const responseData = (await response.json()) as Quote[];
 
-  const quotes: FetchAllQuotesType = {
+  const quotesType: FetchAllQuotesType = {
     fetchFavsOnly: shouldFetchFavs,
     quotes: responseData,
   };
-  return quotes;
+  return quotesType;
 });
 
 export const fetchQuoteById = createAsyncThunk<

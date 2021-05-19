@@ -1,24 +1,36 @@
 import { StatusBar } from "expo-status-bar";
-import React, { FC } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { FC, useState } from "react";
+
 import { Provider } from "react-redux";
-import Me from "./components/Me";
-import CustomCarousel from "./CustomCarousel";
+import * as Font from "expo-font";
+import AppLoading from "expo-app-loading";
+
 import store from "./store/store";
+import QuoteScreen from "./screen/QuoteScreen";
+
+const fetchFonts = () => {
+  return Font.loadAsync({
+    "product-sans-bold": require("./assets/fonts/product-sans-bold.ttf"),
+    "product-sans": require("./assets/fonts/product-sans.ttf"),
+  });
+};
 
 export default function App() {
+  const [fontIsLoaded, setFontIsLoaded] = useState<boolean>(false);
+
+  if (!fontIsLoaded) {
+    return (
+      <AppLoading
+        startAsync={fetchFonts}
+        onFinish={() => setFontIsLoaded(true)}
+        onError={console.warn}
+      />
+    );
+  }
+
   return (
     <Provider store={store}>
-      <Me />
+      <QuoteScreen />
     </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
