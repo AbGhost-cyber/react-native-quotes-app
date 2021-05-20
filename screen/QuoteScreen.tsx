@@ -6,50 +6,56 @@ import {
   Text,
   View,
   ActivityIndicator,
-  Dimensions,
   Animated,
+  Dimensions,
 } from "react-native";
 import Swiper from "react-native-deck-swiper";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Transitioning, TransitioningView } from "react-native-reanimated";
 
 import { QuoteItem } from "../components/QuoteItem";
-import { Font, stackSize, TEXT_MAX_LENGTH } from "../constants/constants";
-import { Quote } from "../model/Types";
+import { Font, getStackSize, QUOTE_MAX_LENGTH } from "../constants/constants";
+import { FetchType, Quote } from "../model/Types";
 import { useAppSelector, useAppDispatch } from "../store/hooks/hooks";
 import { fetchQuotes } from "../store/AsyncActions";
 import { transition } from "../components/CustomTransistion";
 import { CustomButton } from "../components/CustomButton";
-import { BottomTab } from "../components/BottomTab";
+import { ExpandedQuote } from "../components/ExpandedQuote";
+
+const { width } = Dimensions.get("window");
 
 const QuoteScreen = () => {
   const _quotes = useAppSelector((state) => state.myQuoteSlice.quotes);
+  const _favQuotes = useAppSelector((state) => state.myQuoteSlice.favQuotes);
   const dispatch = useAppDispatch();
-
-  const { pro_bold, pro_sans } = Font;
 
   const [index, setIndex] = useState(0);
   const [error, setError] = useState<undefined | string>();
 
-  const [quotes, setQuotes] = useState<Quote[]>(_quotes);
+  const [fetchType, setFetchType] = useState<FetchType>("All");
+  const [quotes, setQuotes] = useState<Quote[]>(
+    fetchType === "All" ? _quotes : _favQuotes
+  );
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showExpanded, setShowExpanded] = useState(false);
 
   const swipeRef = useRef<Swiper<Quote>>(null);
   const transitionRef = useRef<TransitioningView>(null);
 
-  const fadeAnimation = useRef(new Animated.Value(0)).current;
-
-  const quoteIsOutOfBounds = isLoaded
-    ? quotes[index].quote.length > TEXT_MAX_LENGTH
-    : false;
+  const quoteIsOutOfBounds =
+    isLoaded && quotes.length > 0
+      ? quotes[index].quote.length > QUOTE_MAX_LENGTH
+      : false;
 
   useEffect(() => {
-    fetchQuotesFromServer(false);
-  }, []);
+    fetchQuotesFromServer(fetchType);
+  }, [fetchType]);
 
   const fetchQuotesFromServer = useCallback(
-    async (shouldFetchFavs: boolean) => {
+    async (fetchType: FetchType) => {
+      const getType = fetchType === "All" ? false : true;
       setError(undefined);
-      const resultAction = await dispatch(fetchQuotes(shouldFetchFavs));
+      const resultAction = await dispatch(fetchQuotes(getType));
       //if success
       if (fetchQuotes.fulfilled.match(resultAction)) {
         const data = resultAction.payload.quotes;
@@ -60,20 +66,13 @@ const QuoteScreen = () => {
       }
       setIsLoaded(true);
     },
-    [quotes, error, isLoaded]
+    [quotes, error, isLoaded, fetchType]
   );
 
   const onSwiped = () => {
+    setShowExpanded(false);
     transitionRef?.current?.animateNextTransition();
     setIndex((index + 1) % quotes.length);
-  };
-
-  const fadeOut = () => {
-    Animated.timing(fadeAnimation, {
-      toValue: 0,
-      duration: 4000,
-      useNativeDriver: false,
-    }).start();
   };
 
   if (!isLoaded) {
@@ -82,9 +81,35 @@ const QuoteScreen = () => {
         <ActivityIndicator size={30} />
       </View>
     );
+  } else if (quotes.length <= 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text
+          style={{
+            textAlign: "center",
+            fontSize: 22,
+            fontFamily: Font.pro_bold,
+          }}
+        >
+          No Quotes Found
+        </Text>
+      </View>
+    );
   } else {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container]}>
+        <MaterialCommunityIcons
+          name="crop-square"
+          size={width}
+          color="#0070FF"
+          style={{
+            opacity: 0.05,
+            transform: [{ rotate: "45deg" }, { scale: 1.6 }],
+            position: "absolute",
+            left: -15,
+            top: 30,
+          }}
+        />
         <StatusBar hidden={true} />
         <View style={styles.swiperContainer}>
           <Swiper
@@ -95,11 +120,19 @@ const QuoteScreen = () => {
             verticalSwipe={false}
             backgroundColor="transparent"
             onSwiped={onSwiped}
-            renderCard={(quote) => <QuoteItem quote={quote} />}
+            renderCard={(quote) => (
+              //render card quote is faulty
+              <QuoteItem
+                quote={quotes[index]}
+                fetchFavQuotes={(type) => {
+                  setFetchType(type);
+                }}
+              />
+            )}
             onTapCard={() => swipeRef?.current?.swipeLeft()}
             cardVerticalMargin={50}
             stackScale={10}
-            stackSize={stackSize}
+            stackSize={getStackSize(quotes)}
             stackSeparation={14}
             animateOverlayLabelsOpacity
             animateCardOpacity
@@ -107,16 +140,26 @@ const QuoteScreen = () => {
             disableRightSwipe
           />
         </View>
+
         <View style={{ justifyContent: "space-evenly", flex: 0.55 }}>
           <Transitioning.View
             ref={transitionRef}
             transition={transition}
             style={[styles.bottomContainerMeta]}
           >
-            {quoteIsOutOfBounds && <CustomButton text="Expand" />}
+            {quoteIsOutOfBounds && (
+              <CustomButton
+                text={showExpanded ? "Collapse Quote" : "Expand Quote"}
+                onPress={() => {
+                  setShowExpanded(!showExpanded);
+                }}
+              />
+            )}
           </Transitioning.View>
         </View>
-        <BottomTab />
+        {quoteIsOutOfBounds && showExpanded && (
+          <ExpandedQuote id={quotes[index].id} text={quotes[index].quote} />
+        )}
       </SafeAreaView>
     );
   }

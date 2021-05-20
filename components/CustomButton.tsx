@@ -4,11 +4,12 @@ import { Font } from "../constants/constants";
 
 interface CustomButtonProps {
   text: string;
+  onPress: () => void;
 }
 
 export const CustomButton: FC<CustomButtonProps> = (props) => {
   return (
-    <TouchableOpacity style={styles.button}>
+    <TouchableOpacity style={styles.button} onPress={props.onPress}>
       <Text style={styles.text}>{props.text}</Text>
     </TouchableOpacity>
   );
@@ -26,8 +27,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 15,
-    alignSelf: "center",
-    textTransform: "uppercase",
     fontFamily: Font.pro_sans,
     color: "white",
   },

@@ -32,6 +32,8 @@ type UserListState = {
   error?: string;
 };
 
+type FetchType = "Favorites" | "All";
+
 export {
   Quote,
   ServerResponse,
@@ -39,4 +41,5 @@ export {
   FetchAllQuotesType,
   RequestConfig,
   UserListState,
+  FetchType,
 };

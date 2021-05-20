@@ -3,13 +3,18 @@ import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Font } from "../constants/constants";
 
-interface BottomTabProps {}
+interface BottomTabProps {
+  onMoreOptions: () => void;
+  onCopyPress: () => void;
+  onHeartPress: () => void;
+  isHeartPressed: boolean;
+}
 
-interface IconProps {
+export interface IconProps {
   iconName: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   size?: number;
-  text: string;
+  color?: string;
 }
 
 const CustomIcon: FC<IconProps> = (props) => {
@@ -18,17 +23,8 @@ const CustomIcon: FC<IconProps> = (props) => {
       <Ionicons
         name={props.iconName}
         size={props.size ? props.size : 30}
-        color="black"
+        color={props.color ? props.color : "black"}
       />
-      <Text
-        style={{
-          fontFamily: Font.pro_bold,
-          color: "#ccc",
-          alignSelf: "center",
-        }}
-      >
-        {props.text}
-      </Text>
     </TouchableOpacity>
   );
 };
@@ -36,18 +32,26 @@ const CustomIcon: FC<IconProps> = (props) => {
 export const BottomTab: FC<BottomTabProps> = (props) => {
   return (
     <View style={styles.parent}>
-      <CustomIcon iconName="share" onPress={() => {}} text="share" />
-      <CustomIcon iconName="ios-heart" onPress={() => {}} text="favorite" />
-      <CustomIcon iconName="ios-copy" onPress={() => {}} text="copy" />
-      <CustomIcon iconName="ios-menu" onPress={() => {}} text="favorite lists" />
+      <CustomIcon
+        iconName="ios-list-outline"
+        onPress={() => props.onMoreOptions()}
+      />
+      <CustomIcon
+        iconName={props.isHeartPressed ? "ios-heart" : "ios-heart-outline"}
+        onPress={() => props.onHeartPress()}
+        color = "#EC2379"
+      />
+      <CustomIcon
+        iconName="ios-copy-outline"
+        onPress={() => props.onCopyPress()}
+      />
     </View>
   );
 };
 const styles = StyleSheet.create({
   parent: {
     // flex: 1,
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
     flexDirection: "row",
-    margin: 10,
   },
 });

@@ -8,6 +8,7 @@ import AppLoading from "expo-app-loading";
 import store from "./store/store";
 import QuoteScreen from "./screen/QuoteScreen";
 
+
 const fetchFonts = () => {
   return Font.loadAsync({
     "product-sans-bold": require("./assets/fonts/product-sans-bold.ttf"),
