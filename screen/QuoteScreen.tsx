@@ -42,7 +42,7 @@ const QuoteScreen = () => {
   const swipeRef = useRef<Swiper<Quote>>(null);
   const transitionRef = useRef<TransitioningView>(null);
 
-  const quoteIsOutOfBounds =
+  let quoteIsOutOfBounds =
     isLoaded && quotes.length > 0
       ? quotes[index].quote.length > QUOTE_MAX_LENGTH
       : false;
@@ -55,6 +55,7 @@ const QuoteScreen = () => {
     async (fetchType: FetchType) => {
       const getType = fetchType === "All" ? false : true;
       setError(undefined);
+      setIsLoaded(false);
       const resultAction = await dispatch(fetchQuotes(getType));
       //if success
       if (fetchQuotes.fulfilled.match(resultAction)) {
@@ -77,22 +78,20 @@ const QuoteScreen = () => {
 
   if (!isLoaded) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <View style={styles.emptyParent}>
         <ActivityIndicator size={30} />
       </View>
     );
   } else if (quotes.length <= 0) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text
-          style={{
-            textAlign: "center",
-            fontSize: 22,
-            fontFamily: Font.pro_bold,
+      <View style={styles.emptyParent}>
+        <Text style={styles.emptyText}>No Quotes Found</Text>
+        <CustomButton
+          text="View All Quotes"
+          onPress={() => {
+            setFetchType("All");
           }}
-        >
-          No Quotes Found
-        </Text>
+        />
       </View>
     );
   } else {
@@ -121,11 +120,12 @@ const QuoteScreen = () => {
             backgroundColor="transparent"
             onSwiped={onSwiped}
             renderCard={(quote) => (
-              //render card quote is faulty
               <QuoteItem
-                quote={quotes[index]}
+                quote={quote}
                 fetchFavQuotes={(type) => {
                   setFetchType(type);
+                  setIndex(0);
+                  fetchQuotesFromServer(type);
                 }}
               />
             )}
@@ -176,4 +176,15 @@ const styles = StyleSheet.create({
     flex: 0.55,
   },
   bottomContainerMeta: { alignContent: "flex-end", alignItems: "center" },
+
+  emptyParent: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 22,
+    fontFamily: Font.pro_bold,
+  },
 });
