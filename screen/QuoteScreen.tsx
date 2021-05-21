@@ -123,10 +123,11 @@ const QuoteScreen = () => {
               <QuoteItem
                 quote={quote}
                 fetchFavQuotes={(type) => {
+                  fetchQuotesFromServer(type);
                   setFetchType(type);
                   setIndex(0);
-                  fetchQuotesFromServer(type);
                 }}
+                type={fetchType}
               />
             )}
             onTapCard={() => swipeRef?.current?.swipeLeft()}

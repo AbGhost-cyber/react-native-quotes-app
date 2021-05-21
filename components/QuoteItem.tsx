@@ -13,6 +13,7 @@ const { pro_bold, pro_sans } = Font;
 interface QuoteItemProps {
   quote: Quote;
   fetchFavQuotes: (type: FetchType) => void;
+  type: FetchType;
 }
 interface TruncatedTVProps {
   text: string;
@@ -30,8 +31,10 @@ export const QuoteItem: FC<QuoteItemProps> = (props) => {
   const [error, setError] = useState<undefined | string>();
   const { id } = props.quote;
 
+  const getType = props.type === "All" ? "View Favorites" : "View All Quotes";
+
   const handleFetchFav = () => {
-    props.fetchFavQuotes("Favorites");
+    props.fetchFavQuotes(getType === "View Favorites" ? "Favorites" : "All");
   };
 
   const handleFavoriteQuote = useCallback(async () => {
@@ -67,7 +70,7 @@ export const QuoteItem: FC<QuoteItemProps> = (props) => {
   const handleQuoteOptions = () => {
     ActionSheetIOS.showActionSheetWithOptions(
       {
-        options: ["Cancel", "View Favorites", "Share Quote"],
+        options: ["Cancel", getType, "Share Quote"],
         cancelButtonIndex: 0,
       },
       (buttonIndex) => {
